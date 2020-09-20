@@ -30,8 +30,23 @@ int nextIntUnknown(ulong* seed, short bound)
 	} while(bits - value + (bound - 1) < 0);
 	return value;
 }
+List biomes;
+int[] GenLayerZoomGetInts(int minX, int minZ, int differenceX, int differenceZ){
+    
+}
+int[] GenBiomeGetInts(int minX, int minZ, int differenceX, int differenceZ){
+    int[] parentResult = GenLayerZoomGetInts(minX, minZ, differenceX, differenceZ);
+    //Implement
+}
 void createSpawnPosition(ulong seed){
-
+    //0, 0. 256, biomes, random
+    int var6 = 0 - 256 >> 2;
+    int var7 = 0 - 256 >> 2;
+    int var8 = 0 + 256 >> 2;
+    int var9 = 0 + 256 >> 2;
+    int var10 = var8 - var6 + 1;
+    int var11 = var9 - var7 + 1;
+    int[] var12 = GenBiomeGetInts(var6, var7, var10, var11);
 }
 int main(int argc, char *argv[]){
     uint64_t start;
@@ -45,6 +60,9 @@ int main(int argc, char *argv[]){
 		} else {
 			fprintf(stderr,"Unknown parameter: %s\n", param);
 		}
+    }
+    for(uint64_t i = start; i < start + count; i++){
+        createSpawnPosition(seed);
     }
 }
 
