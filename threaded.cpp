@@ -6,7 +6,6 @@
 #include <iostream>
 #include <algorithm>
 #include <thread>
-
 #include "gen/layers.h"
 #include "gen/generator.h"
 #include "gen/javarnd.h"
