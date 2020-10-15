@@ -101,7 +101,7 @@ void threadWork(std::vector<std::string> data, int threadNumber, int offset, int
                 applySeed(&g, worldSeed);
                 bool found = attemptSpawn(&g, NULL, worldSeed, ChunkX, ChunkZ);
                 if(found){
-                    fprintf(fp, "%d %lld %d %d %d %d\n", threadNumber, (worldSeed), position->x, position->z, ChunkX, ChunkZ);
+                    fprintf(fp, "%lld %d %d %d %d\n", (worldSeed), position->x, position->z, ChunkX, ChunkZ);
                     fflush(fp);
                 }
             }
