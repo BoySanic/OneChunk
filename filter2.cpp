@@ -11,28 +11,29 @@
 #include <fstream>
 #include <thread>
 std::vector<int64_t> results;
-void getStrongholdPositions(int64_t* worldSeed, int SH, Pos* out, LayerStack* g)
+void getStrongholdPositions(int64_t worldSeed, int SH, Pos* out, LayerStack* g)
 {
 	const char* isStrongholdBiome = getValidStrongholdBiomes();
 	
 
-	applySeed(g, *worldSeed);
+	applySeed(g, worldSeed);
 	Layer *l = &g->layers[L_RIVER_MIX_4];
-	
-	setSeed(worldSeed);
-	long double angle = nextDouble(worldSeed) * PI * 2.0;
+	int64_t seedCopy = worldSeed;
+    int64_t* seedPtr = &seedCopy;
+	setSeed(seedPtr);
+	long double angle = nextDouble(seedPtr) * PI * 2.0;
 	int var6 = 1;
 	
 	//1 here determines how many strongholds to generate
 	for (int var7 = 0; var7 < SH; ++var7)
 	{
-		long double distance = (1.25 * (double)var6 + nextDouble(worldSeed)) * 32.0 * (double)var6;
+		long double distance = (1.25 * (double)var6 + nextDouble(seedPtr)) * 32.0 * (double)var6;
 		int x = (int)round(cos(angle) * distance);
 		int z = (int)round(sin(angle) * distance);
 		
 		//std::cout << "X - " << x << " Z - " << z << std::endl;
 		
-		Pos biomePos = findBiomePosition(MC_1_7, l, NULL, (x << 4) + 8, (z << 4) + 8, 112, isStrongholdBiome, worldSeed, NULL);
+		Pos biomePos = findBiomePosition(MC_1_7, l, NULL, (x << 4) + 8, (z << 4) + 8, 112, isStrongholdBiome, seedPtr, NULL);
 
 		out[var7].x = biomePos.x >> 4;
 		out[var7].z = biomePos.z >> 4;
@@ -47,10 +48,12 @@ bool attemptSpawn(const LayerStack *g, int *cache, int64_t worldSeed, int Portal
     Pos spawn;
     const Layer *l = &g->layers[L_RIVER_MIX_4];
     const char *isSpawnBiome = getValidSpawnBiomes();
-    setSeed(&worldSeed);
+    int64_t seedCopy = worldSeed;
+    int64_t* seedPtr = &seedCopy;
+    setSeed(seedPtr);
     int found;
     spawn = findBiomePosition(MC_1_7, l, cache, 0, 0, 256, isSpawnBiome,
-            &worldSeed, &found);
+            seedPtr, &found);
 
     if (!found)
     {
@@ -59,8 +62,8 @@ bool attemptSpawn(const LayerStack *g, int *cache, int64_t worldSeed, int Portal
     }
     for (int i = 0; i < 1000; i++)
     {
-        spawn.x += nextInt(&worldSeed, 64) - nextInt(&worldSeed, 64);
-        spawn.z += nextInt(&worldSeed, 64) - nextInt(&worldSeed, 64);
+        spawn.x += nextInt(seedPtr, 64) - nextInt(seedPtr, 64);
+        spawn.z += nextInt(seedPtr, 64) - nextInt(seedPtr, 64);
         int cx = (int)(spawn.x / 16);
         int cz = (int)(spawn.z / 16);
         if(cx <= PortalX + 1 && cx >= PortalX - 1 && cz >= PortalZ - 1 && cz <= PortalZ + 1){
@@ -71,7 +74,7 @@ bool attemptSpawn(const LayerStack *g, int *cache, int64_t worldSeed, int Portal
     return false;
 }
 FILE *fp;
-void threadWork(std::vector<std::string> data, int threadNumber){
+void threadWork(std::vector<std::string> data, int threadNumber, int offset, int amount){
     int64_t structureSeed;
     int ChunkX;
     int ChunkZ;
@@ -81,21 +84,24 @@ void threadWork(std::vector<std::string> data, int threadNumber){
     std::string thread = std::to_string(threadNumber);
     thread += "out.txt";
     
-    for(int i = 0; i < data.size(); i++){
+    for(int i = offset; i < offset + amount; i++){
         std::string line = data[i];
         std::istringstream iss(line);
         //std::cout << "Thread " << threadNumber << " Testing " << structureSeed << std::endl;
         if(!(iss >> structureSeed >> ChunkX >> ChunkZ)){break;}
         for (int64_t upperBits = 0; upperBits < 1L << 16; upperBits++) {
+
             Pos* position = (Pos*)malloc(sizeof(Pos));
             int64_t worldSeed = (upperBits << 48) | structureSeed;
-            int64_t* seedPtr = &worldSeed;
-            getStrongholdPositions(seedPtr, 1, position, &g);
+            if(threadNumber == 1){
+                    //printf("%lld %d %lld\n", structureSeed, upperBits, worldSeed);
+            }
+            getStrongholdPositions(worldSeed, 1, position, &g);
             if((position->x < ChunkX + 7 && position->x > ChunkX - 7) && (position->z < ChunkZ + 7 && position->z > ChunkZ - 7)){
                 applySeed(&g, worldSeed);
                 bool found = attemptSpawn(&g, NULL, worldSeed, ChunkX, ChunkZ);
                 if(found){
-                    fprintf(fp, "%ld %d %d %d %d\n", (worldSeed), position->x, position->z, ChunkX, ChunkZ);
+                    fprintf(fp, "%d %lld %d %d %d %d\n", threadNumber, (worldSeed), position->x, position->z, ChunkX, ChunkZ);
                     fflush(fp);
                 }
             }
@@ -110,7 +116,8 @@ void threadWork(std::vector<std::string> data, int threadNumber){
 }
 int main(int argc, char **argv ){
     clock_t start = clock();
-
+    int test = 1L << 16;
+    printf("%d test", test);
     int threadCount = 24;
     char* filename;
     for (int i = 1; i < argc; i += 2) {
@@ -131,7 +138,7 @@ int main(int argc, char **argv ){
     double seconds_per_structure_seed = 0.0;
     std::vector<std::thread> threads;
     initBiomes();
-    std::cout << "Begin loading threads" << std::endl;
+    std::cout << "Begin loading threads" << std::endl;  
     int thread = 0;
     int curr = 0;
 
@@ -142,7 +149,7 @@ int main(int argc, char **argv ){
         long structureSeed = 0;
         std::istringstream iss(line);
         if(!(iss >> structureSeed >> ChunkX >> ChunkZ)){break;}
-        if(!((ChunkX > 63 || ChunkX < -63) || (ChunkZ > 63 || ChunkZ < -63) || (ChunkX < 25 && ChunkX > -25) && (ChunkZ < 25 && ChunkX > -25))){
+        if(!((ChunkX > 63 || ChunkX < -63) || (ChunkZ > 63 || ChunkZ < -63) || (ChunkX < 25 && ChunkX > -25) && (ChunkZ < 25 && ChunkZ > -25))){
             arr.push_back(line);
         }
         //printf("Completed structure seed %d out of %d\n", curr, max);
@@ -154,20 +161,13 @@ int main(int argc, char **argv ){
     int remainder = arr.size() % threadCount;
     int amount = structureSeedsPerThread + remainder;
     std::vector<std::string> tArr;
-    for(int i = 0; i <= arr.size(); i++){
-        if(curr <= amount){
-            tArr.push_back(arr[i]);
-            curr++;
-        }
-        if(curr == amount){
-           std::cout << "Thread " << thread << " started with " << tArr.size() << " seeds" << std::endl;
-            curr = 0;
-            amount= structureSeedsPerThread;
-            std::vector<std::string> poggers(tArr);
-            threads.push_back(std::thread(threadWork, poggers, thread));
-            tArr.clear();
-            thread++;
-        }
+    int offset = 0;
+    for(int i = 0; i < threadCount; i++){
+        std::cout << "Thread " << i << " started with " << amount << " seeds" << std::endl;
+        curr = 0;
+        threads.push_back(std::thread(threadWork, arr, i, offset, amount));
+        offset += amount;
+        amount = structureSeedsPerThread;
     }
     for(int thNum = 0; thNum < threadCount; thNum++){
         threads[thNum].join();
