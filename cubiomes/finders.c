@@ -512,12 +512,13 @@ Pos findBiomePosition(
     {
         for (i = 0; i < width*height; i++)
         {
-            if (biomeExists(map[i]) && isValid[map[i]] &&
-                (found == 0 || nextInt(seed, found + 1) == 0))
+            if ((found == 0 || nextInt(seed, found + 1) == 0))
             {
-                out.x = (x1 + i%width) << 2;
-                out.z = (z1 + i/width) << 2;
-                ++found;
+                if(biomeExists(map[i]) && isValid[map[i]]){
+                    out.x = (x1 + i%width) << 2;
+                    out.z = (z1 + i/width) << 2;
+                    ++found;
+                }
             }
         }
     }

@@ -1,8 +1,8 @@
 #include "cubiomes/javarnd.h"
-#include <iostream>
 #include "cubiomes/layers.h"
 #include "cubiomes/finders.h"
 #include "cubiomes/generator.h"
+#include <iostream>
 #include <math.h>
 #include <vector>
 #include <iomanip>
@@ -10,12 +10,13 @@
 #include <string>
 #include <fstream>
 #include <thread>
+#include <pthread.h>
+#include <ctime>
 std::vector<int64_t> results;
 void getStrongholdPositions(int64_t worldSeed, int SH, Pos* out, LayerStack* g)
 {
 	const char* isStrongholdBiome = getValidStrongholdBiomes();
 	
-
 	applySeed(g, worldSeed);
 	Layer *l = &g->layers[L_RIVER_MIX_4];
 	int64_t seedCopy = worldSeed;
@@ -74,6 +75,23 @@ bool attemptSpawn(const LayerStack *g, int *cache, int64_t worldSeed, int Portal
     return false;
 }
 FILE *fp;
+int total = 0;
+int current = 0;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+time_t start;
+time_t temp;
+void increment(){
+    pthread_mutex_lock(&mutex);
+    current++;
+    if(current % 10 == 0){
+        temp = time(NULL);
+        double timeElapsed = temp -  start;
+        double seedsPerSec = (double)(current * 65536)/timeElapsed;
+        printf("Progress: %08d out of %08d completed\tWorld Seeds Per Second: %08.05f\n", current, total, seedsPerSec);
+    }
+    pthread_mutex_unlock(&mutex);
+}
+
 void threadWork(std::vector<std::string> data, int threadNumber, int offset, int amount){
     int64_t structureSeed;
     int ChunkX;
@@ -93,9 +111,6 @@ void threadWork(std::vector<std::string> data, int threadNumber, int offset, int
 
             Pos* position = (Pos*)malloc(sizeof(Pos));
             int64_t worldSeed = (upperBits << 48) | structureSeed;
-            if(threadNumber == 1){
-                    //printf("%lld %d %lld\n", structureSeed, upperBits, worldSeed);
-            }
             getStrongholdPositions(worldSeed, 1, position, &g);
             if((position->x < ChunkX + 7 && position->x > ChunkX - 7) && (position->z < ChunkZ + 7 && position->z > ChunkZ - 7)){
                 applySeed(&g, worldSeed);
@@ -108,14 +123,12 @@ void threadWork(std::vector<std::string> data, int threadNumber, int offset, int
             delete position;
             position = NULL;
         }
-        if(i % 10 == 0){
-            std::cout << "Thread " << threadNumber << " index " << i << std::endl;
-        }
+        increment();
     }  
     std::cout << "Thread " << threadNumber << " closing" << std::endl;
 }
 int main(int argc, char **argv ){
-    clock_t start = clock();
+    start = time(NULL);
     int test = 1L << 16;
     printf("%d test", test);
     int threadCount = 24;
@@ -146,10 +159,10 @@ int main(int argc, char **argv ){
     while(std::getline(infile, line)){
         int ChunkX = 0;
         int ChunkZ = 0;
-        long structureSeed = 0;
+        int64_t structureSeed = 0;
         std::istringstream iss(line);
         if(!(iss >> structureSeed >> ChunkX >> ChunkZ)){break;}
-        if(!((ChunkX > 63 || ChunkX < -63) || (ChunkZ > 63 || ChunkZ < -63) || (ChunkX < 25 && ChunkX > -25) && (ChunkZ < 25 && ChunkZ > -25))){
+        if(!((ChunkX <= 63 && ChunkX >= -63) && (ChunkZ <= 63 && ChunkZ >= -63) && (ChunkX >= 25 && ChunkX <= -25) || (ChunkZ >= 25 && ChunkZ <= -25))){
             arr.push_back(line);
         }
         //printf("Completed structure seed %d out of %d\n", curr, max);
@@ -157,6 +170,7 @@ int main(int argc, char **argv ){
         //curr++;
     }
     infile.close();
+    total = arr.size();
     int structureSeedsPerThread = arr.size()/threadCount;
     int remainder = arr.size() % threadCount;
     int amount = structureSeedsPerThread + remainder;
@@ -177,7 +191,7 @@ int main(int argc, char **argv ){
         fflush(fp);
     }
     fclose(fp);
-    clock_t end = clock();
+    time_t end = time(NULL);
     printf("File took %f seconds to complete.\n", (double)(((double)end - (double)start)/1000000.0));
     return 0;
 }
