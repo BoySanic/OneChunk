@@ -12,8 +12,7 @@ jobs:
     - uses: msys2/setup-msys2@v2
     - name: build
       run: |
-       echo "D:\a\kaktwoos-cl\kaktwoos-cl\lib\x86_64\;D:\a\kaktwoos-cl\kaktwoos-cl\include\" >> $GITHUB_PATH
-       g++ -w -static -m64 -Ofast -lstdc++ .\filter9000-boinc.cpp -o filter9000.exe -LD:\a\one-chunk\one-chunk\lib\x86_64\ -ID:\a\kaktwoos-cl\kaktwoos-cl\include\ -ID:\a\kaktwoos-cl\kaktwoos-cl\boinc\ -ID:\a\kaktwoos-cl\kaktwoos-cl\boinc\win\ -LD:\a\kaktwoos-cl\kaktwoos-cl\boinc\lib\win\ -lboinc_api -lboinc -D_WIN64 -DWIN64 -D_WIN32 -DWIN32
+       g++ -w -static -m64 -Ofast -lstdc++ .\filter9000-boinc.cpp -o filter9000.exe -ID:\a\one-chunk\one-chunk\boinc\ -ID:\a\one-chunk\one-chunk\boinc\win\ -LD:\a\one-chunk\one-chunk\boinc\lib\win\ -lboinc_api -lboinc -D_WIN64 -DBOINC -DWIN64 -D_WIN32 -DWIN32
        dir
     - uses: actions/upload-artifact@v2
       with:
@@ -29,14 +28,10 @@ jobs:
     - name: build
       run: |
        apt-get update && apt-get install -y \
-       ocl-icd-opencl-dev g++ libc6-dev && \
        rm -rf /var/lib/apt/lists/*
-       g++ -w -m64 -O3 ./main.c -o kaktwoos-ocl-nvidia -Iboinc/ -Lboinc/lib/lin -static-libgcc -static-libstdc++ -lboinc_api -lboinc -lboinc_opencl -pthread -Wl,-Bdynamic -lOpenCL -Wl,-dynamic-linker,/lib64/ld-linux-x86-64.so.2 -DWANTED_CACTUS_HEIGHT=21
-       g++ -w -m64 -O3 ./main-amd.c -o kaktwoos-ocl-amd -Iboinc/ -Lboinc/lib/lin -static-libgcc -static-libstdc++ -lboinc_api -lboinc -lboinc_opencl -pthread -Wl,-Bdynamic -lOpenCL -Wl,-dynamic-linker,/lib64/ld-linux-x86-64.so.2 -DWANTED_CACTUS_HEIGHT=21
-       g++ -w -m64 -O3 ./main-intel.c -o kaktwoos-ocl-intel -Iboinc/ -Lboinc/lib/lin -static-libgcc -static-libstdc++ -lboinc_api -lboinc -lboinc_opencl -pthread -Wl,-Bdynamic -lOpenCL -Wl,-dynamic-linker,/lib64/ld-linux-x86-64.so.2 -DWANTED_CACTUS_HEIGHT=21
-
+       g++ -w -static -m64 -Ofast -lstdc++ .\filter9000-boinc.cpp -o filter9000 -ID:\a\one-chunk\one-chunk\boinc\ -LD:\a\one-chunk\one-chunk\boinc\lib\lin\ -lboinc_api -lboinc -DBOINC
        ls -la
     - uses: actions/upload-artifact@v2
       with:
-       name: kaktwoos-ocl-lin
-       path: ./kaktwoos-ocl*
+       name: onechunk-filter9000-lin
+       path: ./filter9000
