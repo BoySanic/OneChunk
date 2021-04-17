@@ -222,6 +222,7 @@ struct checkpoint_vars {
 
 int main(int argc, char **argv) {
 	fp = fopen("out.txt", "w+");
+	char* filename = "ocinput.txt";
 	initBiomes();
 
     int64_t checkpointOffset = 0;
@@ -272,7 +273,7 @@ int main(int argc, char **argv) {
 	infile.close();
 
     total = arr.size();
-    start_time = time(NULL);
+    start = time(NULL);
 
 
     int64_t structureSeed;
@@ -303,11 +304,10 @@ int main(int argc, char **argv) {
 			boinc_delete_file("filter9000-checkpoint.txt"); // Don't touch, same func as normal fdel
             FILE *checkpoint_data = boinc_fopen("filter9000-checkpoint.txt", "wb");
 			struct checkpoint_vars data_store;
-			data_store.offset = offset;
+			data_store.offset = i;
             data_store.elapsed_chkpoint = elapsed_chkpoint + elapsed;
             fwrite(&data_store, sizeof(data_store), 1, checkpoint_data);
             fclose(checkpoint_data);
-            checkpointTemp = 0;
             #ifdef BOINC
                 boinc_end_critical_section();
                 boinc_checkpoint_completed(); // Checkpointing completed
@@ -322,10 +322,10 @@ int main(int argc, char **argv) {
     double speed = done / (double) elapsed;
     fprintf(stderr, "\nSpeed: %.2lf/s\n", speed );
     fprintf(stderr, "Done.\n");
-    fprintf(stderr, "Processed: %llu seeds in %.2lfs seconds.\n", COUNT, (double) elapsed_chkpoint + (double) elapsed );
+    fprintf(stderr, "Processed: %llu seeds in %.2lfs seconds.\n", total, (double) elapsed_chkpoint + (double) elapsed );
     fprintf(stderr, "Have %llu output seeds.\n", outCount);
     fflush(stderr);
-    outSeeds.close();
+    fp.close();
     boinc_delete_file("filter9000-checkpoint.txt");
     #ifdef BOINC
         boinc_end_critical_section();
