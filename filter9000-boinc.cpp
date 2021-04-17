@@ -104,7 +104,7 @@ Position getCenterPos(BoundingBox box) {
 	return ret;
 }
 FILE *fp;
-int outcount = 0;
+int outCount = 0;
 void getStrongholdPositions(LayerStack* g, int64_t* worldSeed, int SH, Data* data, int* cache, BoundingBox* boxCache, int desiredX, int desiredZ)
 {
 	static const char* isStrongholdBiome = getValidStrongholdBiomes();
