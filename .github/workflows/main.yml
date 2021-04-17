@@ -18,7 +18,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
        name: onechunk-filter9000-win
-       path: .\filter9000.exe
+       path: ./filter9000.exe
 
   linux_x86:
     name: x86_64/release/linux
@@ -28,7 +28,7 @@ jobs:
     - name: build
       run: |
        apt-get update && apt-get install -y
-       g++ -w -static -m64 -Ofast -lstdc++ .\filter9000-boinc.cpp -o filter9000 -ID:\a\OneChunk\OneChunk\boinc\ -ID:\a\OneChunk\OneChunk\Pieces\ -ID:\a\OneChunk\OneChunk\Utils\ -ID:\a\OneChunk\OneChunk\cubiomes\  -LD:\a\one-chunk\one-chunk\boinc\lib\lin\ -DBOINC
+       g++ -w -static -m64 -Ofast -lstdc++ ./filter9000-boinc.cpp -o filter9000 -ID:\a\OneChunk\OneChunk\boinc\ -ID:\a\OneChunk\OneChunk\Pieces\ -ID:\a\OneChunk\OneChunk\Utils\ -ID:\a\OneChunk\OneChunk\cubiomes\  -LD:\a\one-chunk\one-chunk\boinc\lib\lin\ -DBOINC
        ls -la
     - uses: actions/upload-artifact@v2
       with:
