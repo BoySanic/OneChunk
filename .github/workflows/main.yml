@@ -23,7 +23,6 @@ jobs:
   linux_x86:
     name: x86_64/release/linux
     runs-on: [ubuntu-latest]
-    container: nvidia/opencl:devel-ubuntu16.04
     steps:
     - uses: actions/checkout@v2
     - name: build
