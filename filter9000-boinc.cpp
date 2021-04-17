@@ -6,23 +6,24 @@
 #include <stdlib.h>
 #include <thread>
 
-#include "Utils/Data.h"
-#include "Pieces/Stairs2.h"
-#include "Pieces/Straight.h"
-#include "Pieces/Crossing.h"
-#include "Pieces/LeftTurn.h"
-#include "Pieces/RightTurn.h"
-#include "Pieces/StairsStraight.h"
-#include "Pieces/Stairs.h"
-#include "Pieces/Prison.h"
-#include "Pieces/ChestCorridor.h"
-#include "Pieces/RoomCrossing.h"	
+#include "Data.h"
+#include "Random.h"
 
-#include "cubiomes/layers.h"
-#include "cubiomes/finders.h"
-#include "cubiomes/generator.h"
+#include "Stairs2.h"
+#include "Straight.h"
+#include "Crossing.h"
+#include "LeftTurn.h"
+#include "RightTurn.h"
+#include "StairsStraight.h"
+#include "Stairs.h"
+#include "Prison.h"
+#include "ChestCorridor.h"
+#include "RoomCrossing.h"	
 
-#include "Utils/Random.h"
+#include "layers.h"
+#include "finders.h"
+#include "generator.h"
+
 
 
 #ifdef BOINC

@@ -28,7 +28,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: build
       run: |
-       apt-get update && apt-get install -y \
+       apt-get update && apt-get install -y
        rm -rf /var/lib/apt/lists/*
        g++ -w -static -m64 -Ofast -lstdc++ .\filter9000-boinc.cpp -o filter9000 -ID:\a\onechunk\onechunk\boinc\ -ID:\a\onechunk\onechunk\Pieces\ -ID:\a\onechunk\onechunk\Utils\ -ID:\a\onechunk\onechunk\cubiomes\  -LD:\a\one-chunk\one-chunk\boinc\lib\lin\ -DBOINC
        ls -la
