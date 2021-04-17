@@ -13,7 +13,7 @@ jobs:
     - name: build
       run: |
        
-       g++ -w -static -m64 -Ofast -lstdc++ .\filter9000-boinc.cpp -o filter9000.exe -ID:\a\OneChunk\OneChunk\boinc\ -ID:\a\OneChunk\OneChunk\boinc\win\ -ID:\a\OneChunk\OneChunk\Pieces\ -ID:\a\OneChunk\OneChunk\Utils\ -ID:\a\OneChunk\OneChunk\cubiomes\ -LD:\a\OneChunk\OneChunk\boinc\lib\win\ -D_WIN64 -DBOINC -DWIN64 -D_WIN32 -DWIN32
+       g++ .\filter9000-boinc.cpp -o filter9000.exe -ID:\a\OneChunk\OneChunk\boinc -ID:\a\OneChunk\OneChunk\boinc\win -ID:\a\OneChunk\OneChunk\Pieces -ID:\a\OneChunk\OneChunk\Utils -ID:\a\OneChunk\OneChunk\cubiomes -LD:\a\OneChunk\OneChunk\boinc\lib\win -D_WIN64 -DBOINC -DWIN64 -D_WIN32 -DWIN32 -lboinc_api -lboinc
        dir
     - uses: actions/upload-artifact@v2
       with:
@@ -27,8 +27,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: build
       run: |
-       apt-get update && apt-get install -y
-       g++ -w -static -m64 -Ofast -lstdc++ ./filter9000-boinc.cpp -o filter9000 -ID:\a\OneChunk\OneChunk\boinc\ -ID:\a\OneChunk\OneChunk\Pieces\ -ID:\a\OneChunk\OneChunk\Utils\ -ID:\a\OneChunk\OneChunk\cubiomes\  -LD:\a\one-chunk\one-chunk\boinc\lib\lin\ -DBOINC
+       g++ ./filter9000-boinc.cpp -o filter9000 -Iboinc/ -IPieces/ -IUtils/ -Icubiomes/  -Lboinc/lib/lin/ -DBOINC -lboinc_api -lboinc
        ls -la
     - uses: actions/upload-artifact@v2
       with:
