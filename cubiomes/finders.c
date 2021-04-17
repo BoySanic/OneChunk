@@ -512,13 +512,12 @@ Pos findBiomePosition(
     {
         for (i = 0; i < width*height; i++)
         {
-            if ((found == 0 || nextInt(seed, found + 1) == 0))
+            if (biomeExists(map[i]) && isValid[map[i]] &&
+                (found == 0 || nextInt(seed, found + 1) == 0))
             {
-                if(biomeExists(map[i]) && isValid[map[i]]){
-                    out.x = (x1 + i%width) << 2;
-                    out.z = (z1 + i/width) << 2;
-                    ++found;
-                }
+                out.x = (x1 + i%width) << 2;
+                out.z = (z1 + i/width) << 2;
+                ++found;
             }
         }
     }
@@ -536,6 +535,7 @@ Pos findBiomePosition(
 
     return out;
 }
+
 
 
 int areBiomesViable(
@@ -685,22 +685,7 @@ void approxInnerStrongholdRing(Pos p[3], int mcversion, int64_t s48)
     }
 }
 
-const char* getValidStrongholdBiomes()
-{
-    static char validStrongholdBiomes[256];
 
-    if (!validStrongholdBiomes[plains])
-    {
-        int id;
-        for (id = 0; id < 256; id++)
-        {
-            if (biomeExists(id) && biomes[id].height > 0.0)
-                validStrongholdBiomes[id] = 1;
-        }
-    }
-
-    return validStrongholdBiomes;
-}
 
 
 int findStrongholds(const int mcversion, const LayerStack *g, int *cache,
@@ -842,18 +827,7 @@ static int canCoordinateBeSpawn(const int64_t seed, const LayerStack *g, int *ca
 }
 
 
-const char* getValidSpawnBiomes()
-{
-    static const int biomesToSpawnIn[] = {forest, plains, taiga, taiga_hills, wooded_hills, jungle, jungle_hills};
-    static char isValid[256];
-    unsigned int i;
 
-    if (!isValid[biomesToSpawnIn[0]])
-        for (i = 0; i < sizeof(biomesToSpawnIn) / sizeof(int); i++)
-            isValid[ biomesToSpawnIn[i] ] = 1;
-
-    return isValid;
-}
 
 
 Pos getSpawn(const int mcversion, const LayerStack *g, int *cache, int64_t worldSeed)

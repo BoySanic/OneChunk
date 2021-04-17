@@ -573,7 +573,34 @@ int isZombieVillage(const int mcversion, const int64_t worldSeed,
  */
 int64_t getHouseList(const int64_t worldSeed, const int chunkX, const int chunkZ,
         int *housesOut);
+static inline char* getValidSpawnBiomes()
+{
+    static const int biomesToSpawnIn[] = {forest, plains, taiga, taiga_hills, wooded_hills, jungle, jungle_hills};
+    static char isValid[256];
+    unsigned int i;
 
+    if (!isValid[biomesToSpawnIn[0]])
+        for (i = 0; i < sizeof(biomesToSpawnIn) / sizeof(int); i++)
+            isValid[ biomesToSpawnIn[i] ] = 1;
+
+    return isValid;
+}
+static inline char* getValidStrongholdBiomes()
+{
+    static char validStrongholdBiomes[256];
+
+    if (!validStrongholdBiomes[plains])
+    {
+        int id;
+        for (id = 0; id < 256; id++)
+        {
+            if (biomeExists(id) && biomes[id].height > 0.0)
+                validStrongholdBiomes[id] = 1;
+        }
+    }
+
+    return validStrongholdBiomes;
+}
 
 //==============================================================================
 // Seed Filters
@@ -948,8 +975,7 @@ float isQuadBaseFeature(const StructureConfig sconf, int64_t seed,
         x0,z0,x1,z1,x2,z2,x3,z3,ax,ay,az,sconf.regionSize,radius);
     return sqrad < radius ? sqrad : 0;
 }
-const char* getValidStrongholdBiomes();
-const char* getValidSpawnBiomes();
+
 
 static inline __attribute__((always_inline, const))
 float isQuadBaseLarge(const StructureConfig sconf, int64_t seed,
