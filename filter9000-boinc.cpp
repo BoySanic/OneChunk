@@ -104,6 +104,7 @@ Position getCenterPos(BoundingBox box) {
 	return ret;
 }
 FILE *fp;
+int outcount = 0;
 void getStrongholdPositions(LayerStack* g, int64_t* worldSeed, int SH, Data* data, int* cache, BoundingBox* boxCache, int desiredX, int desiredZ)
 {
 	static const char* isStrongholdBiome = getValidStrongholdBiomes();
@@ -166,6 +167,7 @@ void getStrongholdPositions(LayerStack* g, int64_t* worldSeed, int SH, Data* dat
 				if((pos1Z - 8) >> 4 == desiredZ && (pos2Z - 8) >> 4 == desiredZ) {
 					Position center = getCenterPos(lastPiece.box);
 					fprintf(fp, "%lld %d %d %d %d\n", copy, center.x >> 4, center.z >> 4, center.x, center.z);
+					outCount++;
 				}
 			}
 			
@@ -287,7 +289,7 @@ int main(int argc, char **argv) {
 	LayerStack g;
 	setupGenerator(&g, MC_1_7);
     for(int i = 0+checkpointOffset; i < total; i++){
-        time_t elapsed = time(NULL) - start_time;
+        time_t elapsed = time(NULL) - start;
 		std::string line = arr[i];
         std::istringstream iss(line);
         if(!(iss >> structureSeed >> ChunkX >> ChunkZ)){break;}
@@ -317,7 +319,7 @@ int main(int argc, char **argv) {
     #ifdef BOINC
         boinc_begin_critical_section();
     #endif
-    time_t elapsed = (time(NULL) - start_time) + elapsed_chkpoint;
+    time_t elapsed = (time(NULL) - start) + elapsed_chkpoint;
     double done = (double)total;
     double speed = done / (double) elapsed;
     fprintf(stderr, "\nSpeed: %.2lf/s\n", speed );
@@ -325,7 +327,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Processed: %llu seeds in %.2lfs seconds.\n", total, (double) elapsed_chkpoint + (double) elapsed );
     fprintf(stderr, "Have %llu output seeds.\n", outCount);
     fflush(stderr);
-    fp.close();
+    fclose(fp);
     boinc_delete_file("filter9000-checkpoint.txt");
     #ifdef BOINC
         boinc_end_critical_section();
