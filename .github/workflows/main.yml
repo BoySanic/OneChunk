@@ -16,7 +16,7 @@ jobs:
        dir
     - uses: actions/upload-artifact@v2
       with:
-       name: onechunk-filter9000-win
+       name: onechunk-filter9000-x86_64-windows
        path: ./filter9000.exe
 
   linux_x86:
@@ -30,5 +30,24 @@ jobs:
         ls -la
     - uses: actions/upload-artifact@v2
       with:
-       name: onechunk-filter9000-lin
+       name: onechunk-filter9000-x86_64-linux
        path: ./filter9000
+
+  linux_aarch64:
+    name: aarch64/release/linux
+    runs-on: [ubuntu-latest]
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup
+      run: |
+        sudo apt install g++-10-aarch64-linux-gnu
+        sudo apt install gcc-10-aarch64-linux-gnu
+    - name: build
+      run: |
+        aarch64-linux-gnu-g++-10 filter9000-boinc.cpp -o filter9000 ./Pieces/Stronghold.cpp ./Pieces/StrongholdPiece.cpp ./cubiomes/finders.c ./cubiomes/util.c ./cubiomes/generator.c ./cubiomes/layers.c -I./include -l:libboinc_api.a -l:libboinc.a -L./include/boinc/lib/lin -lstdc++ -static -static-libstdc++ -DBOINC -lboinc_api -lboinc -pthread
+        ls -la
+    - uses: actions/upload-artifact@v2
+      with:
+       name: onechunk-filter9000-aarch64-linux
+       path: ./filter9000
+  
