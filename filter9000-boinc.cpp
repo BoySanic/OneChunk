@@ -6,32 +6,26 @@
 #include <stdlib.h>
 #include <thread>
 
-#include "Data.h"
-#include "Random.h"
+#include "Utils/Data.h"
+#include "Utils/Random.h"
 
-#include "Stairs2.h"
-#include "Straight.h"
-#include "Crossing.h"
-#include "LeftTurn.h"
-#include "RightTurn.h"
-#include "StairsStraight.h"
-#include "Stairs.h"
-#include "Prison.h"
-#include "ChestCorridor.h"
-#include "RoomCrossing.h"	
+#include "Pieces/Stairs2.h"
+#include "Pieces/Straight.h"
+#include "Pieces/Crossing.h"
+#include "Pieces/LeftTurn.h"
+#include "Pieces/RightTurn.h"
+#include "Pieces/StairsStraight.h"
+#include "Pieces/Stairs.h"
+#include "Pieces/Prison.h"
+#include "Pieces/ChestCorridor.h"
+#include "Pieces/RoomCrossing.h"	
 
-#include "layers.h"
-#include "finders.h"
-#include "generator.h"
+#include "cubiomes/layers.h"
+#include "cubiomes/finders.h"
+#include "cubiomes/generator.h"
 
-
-
-#ifdef BOINC
-  #include "boinc/boinc_api.h"
-#if defined _WIN32 || defined _WIN64
-  #include "boinc/boinc_win.h"
-#endif
-#endif
+#include "boinc/boinc_api.h"
+#include "boinc/filesys.h"
 
 void setFirstPiece(Data* data) {
 	data->reset();
