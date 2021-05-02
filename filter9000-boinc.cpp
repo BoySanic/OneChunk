@@ -176,33 +176,11 @@ void getStrongholdPositions(LayerStack* g, int64_t* worldSeed, int SH, Data* dat
 	}
 }
 
-const char* getValidVillageBiomes()
-{
-    static char validVillageBiomes[256];
 
-    if (!validVillageBiomes[plains])
-    {
-        int id;
-        for (id = 0; id < 256; id++)
-        {
-            if (biomeExists(id) && (biomes[id].id == plains || biomes[id].id == desert || biomes[id].id == savanna))
-                validVillageBiomes[id] = 1;
-        }
-    }
 
-    return validVillageBiomes;
-}
-
-bool CanActuallySpawn(int64_t seed, int x, int z, Layer* layer, int* cache) {
-	const char* isValid = getValidVillageBiomes();
-	return areBiomesViable(layer, cache, x * 16 + 8, z * 16 + 8, 0, isValid);
-}
 
 void doSeed(int64_t seed, int x, int z, LayerStack g, int* cache, Data* threadData, BoundingBox* boxCache) {
-	if(!CanActuallySpawn(seed, x, z, &g.layers[L_RIVER_MIX_4], cache))
-		return;
-	
-	getStrongholdPositions(&g, &seed, 1, threadData, cache, boxCache, x, z);
+	getStrongholdPositions(&g, &seed, 3, threadData, cache, boxCache, x, z);
 }
 
 
