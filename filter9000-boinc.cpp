@@ -180,7 +180,7 @@ void getStrongholdPositions(LayerStack* g, int64_t* worldSeed, int SH, Data* dat
 
 
 void doSeed(int64_t seed, int x, int z, LayerStack g, int* cache, Data* threadData, BoundingBox* boxCache) {
-	getStrongholdPositions(&g, &seed, 1, threadData, cache, boxCache, x, z);
+	getStrongholdPositions(&g, &seed, 3, threadData, cache, boxCache, x, z);
 }
 
 
