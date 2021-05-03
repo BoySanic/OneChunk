@@ -3,7 +3,7 @@
 
 #include "Pos.h"
 #include <string>
-
+#include <climits>
 class BoundingBox {
 public:
 	Position start;
