@@ -198,18 +198,17 @@ void getStrongholdPositions(LayerStack* g, int64_t* worldSeed, int SH, Data* dat
     }
 
 void doSeed(int64_t seed, int x, int z, LayerStack g, int* cache, Data* threadData, BoundingBox* boxCache) {
-         getStrongholdPositions(&g, &seed, 3, threadData, cache, boxCache, x, z); 
-    }
+    getStrongholdPositions(&g, &seed, 3, threadData, cache, boxCache, x, z); 
+}
 
-    time_t start;
-    int64_t total;
-    std::vector<std::string> arr;
-    time_t elapsed_chkpoint = 0;
-
-    struct checkpoint_vars {
-        unsigned long long offset;
-        time_t elapsed_chkpoint;
-    };
+time_t start;
+int64_t total;
+std::vector<std::string> arr;
+time_t elapsed_chkpoint = 0;
+struct checkpoint_vars {
+    unsigned long long offset;
+    time_t elapsed_chkpoint;
+};
 
 // Main code begins below
 int main(int argc, char **argv) {
