@@ -27,11 +27,8 @@
 #include "boinc/boinc_api.h"
 #include "boinc/filesys.h"
 
-void setFirstPiece(Data* data) {
-	data->reset();
-	
+void setInitialRng(Data* data) {
 	int64_t worldSeed = data->seed;
-	//The chunk where the base pos of the stronghold is at
 	int chunkX = data->StartChunkX;
 	int chunkZ = data->StartChunkZ;
 
@@ -44,9 +41,11 @@ void setFirstPiece(Data* data) {
 	int64_t internalSeed = var13 ^ var15 ^ worldSeed;
 
 	data->rng->setSeed(internalSeed);
-
-	data->rng->Next(32); //Minecraft and its spaghetti. USELESS RNG CALL. SERIOUSLY?
 	
+	data->rng->Next(32);
+}
+
+void setFirstPiece(Data* data) {	
 	Stairs2::GeneratePiece(data);
 	data->priorityComponentType = 1;
 	Stairs2::BuildComponent(data);
@@ -66,20 +65,16 @@ void BuildComponent(Data* data, PieceInfo pieceInfo) {
 	else if(componentType == RIGHTTURN_PIECE) LeftTurn::BuildComponent(data, pieceInfo);
 	else if(componentType == CHESTCORRIDOR_PIECE) ChestCorridor::BuildComponent(data, pieceInfo);
 	else if(componentType == CORRIDOR_PIECE || componentType == LIBRARY_PIECE) {}
-	else //Unknown piece?!? WTF?
+	else
 		std::cout << "COULD NOT BUILD COMPONENT TYPE " << componentType << std::endl;
 }
 
-PieceInfo getLastPiece(Data* threadData, int64_t seed, int startChunkX, int startChunkZ) {
-	threadData->seed = seed;
-	threadData->StartChunkX = startChunkX;
-	threadData->StartChunkZ = startChunkZ;
-	
+void generateAllPieces(Data* threadData, int64_t seed, int startChunkX, int startChunkZ) {
+	threadData->reset();	
 	setFirstPiece(threadData);
 	
 	while(threadData->pieces_pending.size() != 0) {			
 		int randomPieceNumber = threadData->rng->nextInt(threadData->pieces_pending.size());
-
 		PieceInfo pieceChosen = threadData->pieces_pending.at(randomPieceNumber);
 		threadData->pieces_pending.erase(threadData->pieces_pending.begin() + randomPieceNumber);
 
@@ -88,8 +83,26 @@ PieceInfo getLastPiece(Data* threadData, int64_t seed, int startChunkX, int star
 		if(threadData->portalFound)
 			break;
 	}
+	
 	PieceInfo lastPiece = threadData->pieces[threadData->pieceCnt - 1];
-	return lastPiece;
+	if(lastPiece.componentType != PORTALROOM_PIECE) {
+		BoundingBox structureBox = BoundingBox::getNewBoundingBox();
+		for(int i = 0; i < threadData->pieceCnt; i++) {
+			structureBox.expandTo(threadData->pieces[i].box);
+		}
+		
+		int ySize = structureBox.getYSize() + 1;
+		if(ySize < 53)
+			threadData->rng->nextInt(53 - ySize);
+		
+		generateAllPieces(threadData, seed, startChunkX, startChunkZ);
+	}
+}
+
+PieceInfo getLastPiece(Data* threadData, int64_t seed, int startChunkX, int startChunkZ) {
+	generateAllPieces(threadData, seed, startChunkX, startChunkZ);
+	
+	return threadData->pieces[threadData->pieceCnt - 1];
 }
 
 Position getCenterPos(BoundingBox box) {
@@ -98,6 +111,7 @@ Position getCenterPos(BoundingBox box) {
 	ret.z = (box.end.z + box.start.z) / 2;
 	return ret;
 }
+
 FILE *fp;
 int outCount = 0;
 void getStrongholdPositions(LayerStack* g, int64_t* worldSeed, int SH, Data* data, int* cache, BoundingBox* boxCache, int desiredX, int desiredZ)
