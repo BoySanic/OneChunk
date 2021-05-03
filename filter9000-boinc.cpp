@@ -33,7 +33,6 @@
 
 
 void setInitialRng(Data* data) {
-
 	int64_t worldSeed = data->seed;
 	int chunkX = data->StartChunkX;
 	int chunkZ = data->StartChunkZ;
@@ -52,7 +51,6 @@ void setInitialRng(Data* data) {
 }
 
 void setFirstPiece(Data* data) {	
-
 	Stairs2::GeneratePiece(data);
 	data->priorityComponentType = 1;
 	Stairs2::BuildComponent(data);
