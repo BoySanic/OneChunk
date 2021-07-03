@@ -216,9 +216,13 @@ void doSeed(int64_t seed, int x, int z, LayerStack g, int* cache, Data* threadDa
 int main(int argc, char **argv) {
     fp = fopen("out.txt", "w+");
     char* filename = "jf_MD5"; //Input seeds and pos go here
-	if(argc > 0){
-		if(argv[0] == "-f" || argv[0] == "--file"){
-			filename = argv[1];
+	for (int i = 1; i < argc; i += 2) {
+		const char *param = argv[i];
+		if (strcmp(param, "-f") == 0 || strcmp(param, "--file") == 0) {
+			filename = argv[i + 1];
+		} 
+        else {
+			fprintf(stderr,"Unknown parameter: %s\n", param);
 		}
 	}
     initBiomes();
@@ -267,7 +271,7 @@ int main(int argc, char **argv) {
     int64_t structureSeed;
     int ChunkX;
     int ChunkZ;
-
+	int64_t total = 0;
     int* cache = (int*)malloc(sizeof(int) * 16 * 256 * 256);
     Data* data = new Data();
     BoundingBox* boxCache = (BoundingBox*)malloc(sizeof(BoundingBox));
@@ -275,13 +279,19 @@ int main(int argc, char **argv) {
     LayerStack g;
     setupGenerator(&g, MC_1_7);
     binary = fopen(filename, "rb");
+	if(!binary){
+		fprintf(stderr, "ERROR: Could not load file %s for input.\n", filename);
+	}
+	fseek(binary, 0L, SEEK_END);
+	total = (int64_t)((double)ftell(binary) / 8.0);
+	fseek(binary, 0L, SEEK_SET);
 	int16_t binaryX;
     int16_t binaryZ;
     int64_t* binarySeedPtr;
     int64_t binarySeed;
 	binarySeedPtr = (int64_t*)malloc(8);
 	fseek(binary, checkpointOffset*8, SEEK_SET);
-    for(int i = 0+checkpointOffset; i < 300; i++){
+    for(int i = 0+checkpointOffset; i < total; i++){
         time_t elapsed = time(NULL) - start;
 		int result = 0;
         result = fread(binarySeedPtr, 8, 1, binary);
@@ -321,12 +331,12 @@ int main(int argc, char **argv) {
     #endif
 
     time_t elapsed = (time(NULL) - start) + elapsed_chkpoint;
-    double done = (double) 300;
+    double done = (double) total;
     double speed = (done / (double) elapsed) * 65535;
 
     fprintf(stderr, "\nSpeed: %.2lf world seeds/s\n", speed );
     fprintf(stderr, "Done.\n");
-    fprintf(stderr, "Processed %llu world seeds in %.2lfs seconds.\n", 300*65535, (double) elapsed );
+    fprintf(stderr, "Processed %llu world seeds in %.2lfs seconds.\n", total*65535, (double) elapsed );
     fprintf(stderr, "Have %llu output seeds.\n", outCount );
     fflush(stderr);
     fflush(fp);
