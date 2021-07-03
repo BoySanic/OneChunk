@@ -9,6 +9,7 @@
 #include <sstream>
 #include <stdlib.h>
 #include <thread>
+#include <cstdio>
 
 #include "Utils/Data.h"
 #include "Utils/Random.h"
@@ -32,6 +33,7 @@
 #include "boinc/filesys.h"
 
 FILE *fp;
+FILE *binary;
 int outCount = 0;
 time_t start;
 int64_t total;
@@ -213,7 +215,12 @@ void doSeed(int64_t seed, int x, int z, LayerStack g, int* cache, Data* threadDa
 
 int main(int argc, char **argv) {
     fp = fopen("out.txt", "w+");
-    char* filename = "ocinput.txt"; //Input seeds and pos go here
+    char* filename = "jf_MD5"; //Input seeds and pos go here
+	if(argc > 0){
+		if(argv[0] == "-f" || argv[0] == "--file"){
+			filename = argv[1];
+		}
+	}
     initBiomes();
 
     int64_t checkpointOffset = 0;
@@ -226,7 +233,7 @@ int main(int argc, char **argv) {
         boinc_init_options(&options);
     #endif
 
-    FILE *checkpoint_data = boinc_fopen("filter9000-checkpoint.txt", "rb");
+    FILE *checkpoint_data = boinc_fopen("filter9000-checkpoint", "rb");
     if(!checkpoint_data){
         fprintf(stderr, "No checkpoint to load\n");
     } else {
@@ -251,21 +258,10 @@ int main(int argc, char **argv) {
     boinc_get_init_data(aid);
     #endif
 
-    std::string line;
-    std::ifstream infile(filename);
 
-    while(std::getline(infile, line)){
-        int ChunkX = 0;
-        int ChunkZ = 0;
-        int64_t structureSeed = 0;
-        std::istringstream iss(line);
-        if(!(iss >> structureSeed >> ChunkX >> ChunkZ)){break;}
-        arr.push_back(line);
-    }
 
-    infile.close();
 
-    total = arr.size();
+    //total = arr.size();
     start = time(NULL);
 
     int64_t structureSeed;
@@ -278,17 +274,25 @@ int main(int argc, char **argv) {
 
     LayerStack g;
     setupGenerator(&g, MC_1_7);
-
-    for(int i = 0+checkpointOffset; i < total; i++){
+    binary = fopen(filename, "rb");
+	int16_t binaryX;
+    int16_t binaryZ;
+    int64_t* binarySeedPtr;
+    int64_t binarySeed;
+	binarySeedPtr = (int64_t*)malloc(8);
+	fseek(binary, checkpointOffset*8, SEEK_SET);
+    for(int i = 0+checkpointOffset; i < 300; i++){
         time_t elapsed = time(NULL) - start;
-        std::string line = arr[i];
-        std::istringstream iss(line);
-        if(!(iss >> structureSeed >> ChunkX >> ChunkZ)){break;}
+		int result = 0;
+        result = fread(binarySeedPtr, 8, 1, binary);
+        binaryX = (uint8_t)(((*binarySeedPtr) >> 8) & 0x0FF) - 127;
+        binaryZ = (uint8_t)(((*binarySeedPtr)) & 0x0FF) - 127; 
+        binarySeed = (*binarySeedPtr >> 16) & 0x0FFFFFFFFFFFF;
 
         for (int64_t upperBits = 0; upperBits < 1L << 16; upperBits++) {
-            int64_t worldSeed = (upperBits << 48) | structureSeed;
+            int64_t worldSeed = (upperBits << 48) | binarySeed;
             applySeed(&g, worldSeed);
-            doSeed(worldSeed, ChunkX, ChunkZ, g, cache, data, boxCache);
+            doSeed(worldSeed, binaryX, binaryZ, g, cache, data, boxCache);
         }
 
         if(i % 5 || boinc_time_to_checkpoint()){
@@ -296,9 +300,9 @@ int main(int argc, char **argv) {
                 boinc_begin_critical_section(); // Boinc should not interrupt this
             #endif
             // Checkpointing section below
-            boinc_delete_file("filter9000-checkpoint.txt"); // Don't touch, same func as normal fdel
+            //boinc_delete_file("filter9000-checkpoint"); // Don't touch, same func as normal fdel
 
-            FILE *checkpoint_data = boinc_fopen("filter9000-checkpoint.txt", "wb");
+            FILE *checkpoint_data = boinc_fopen("filter9000-checkpoint", "wb");
             struct checkpoint_vars data_store;
             data_store.offset = i;
             data_store.elapsed_chkpoint = elapsed_chkpoint + elapsed;
@@ -317,16 +321,17 @@ int main(int argc, char **argv) {
     #endif
 
     time_t elapsed = (time(NULL) - start) + elapsed_chkpoint;
-    double done = (double) total;
+    double done = (double) 300;
     double speed = (done / (double) elapsed) * 65535;
 
     fprintf(stderr, "\nSpeed: %.2lf world seeds/s\n", speed );
     fprintf(stderr, "Done.\n");
-    fprintf(stderr, "Processed %llu world seeds in %.2lfs seconds.\n", total*65535, (double) elapsed );
+    fprintf(stderr, "Processed %llu world seeds in %.2lfs seconds.\n", 300*65535, (double) elapsed );
     fprintf(stderr, "Have %llu output seeds.\n", outCount );
     fflush(stderr);
     fflush(fp);
     fclose(fp);
+	fclose(binary);
     boinc_delete_file("filter9000-checkpoint.txt");
     #ifdef BOINC
         boinc_end_critical_section();
