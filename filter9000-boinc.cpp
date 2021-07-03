@@ -216,15 +216,15 @@ void doSeed(int64_t seed, int x, int z, LayerStack g, int* cache, Data* threadDa
 int main(int argc, char **argv) {
     fp = fopen("out.txt", "w+");
     char* filename = "jf_MD5"; //Input seeds and pos go here
-	for (int i = 1; i < argc; i += 2) {
-		const char *param = argv[i];
-		if (strcmp(param, "-f") == 0 || strcmp(param, "--file") == 0) {
-			filename = argv[i + 1];
-		} 
+    for (int i = 1; i < argc; i += 2) {
+        const char *param = argv[i];
+        if (strcmp(param, "-f") == 0 || strcmp(param, "--file") == 0) {
+            filename = argv[i + 1];
+        }
         else {
-			fprintf(stderr,"Unknown parameter: %s\n", param);
-		}
-	}
+            fprintf(stderr,"Unknown parameter: %s\n", param);
+        }
+    }
     initBiomes();
 
     int64_t checkpointOffset = 0;
@@ -279,21 +279,21 @@ int main(int argc, char **argv) {
     LayerStack g;
     setupGenerator(&g, MC_1_7);
     binary = fopen(filename, "rb");
-	if(!binary){
-		fprintf(stderr, "ERROR: Could not load file %s for input.\n", filename);
-	}
-	fseek(binary, 0L, SEEK_END);
-	total = (int64_t)((double)ftell(binary) / 8.0);
-	fseek(binary, 0L, SEEK_SET);
+    if(!binary){
+        fprintf(stderr, "ERROR: Could not load file %s for input.\n", filename);
+    }
+    fseek(binary, 0L, SEEK_END);
+    total = (int64_t)((double)ftell(binary) / 8.0);
+    fseek(binary, 0L, SEEK_SET);
 	int16_t binaryX;
     int16_t binaryZ;
     int64_t* binarySeedPtr;
     int64_t binarySeed;
-	binarySeedPtr = (int64_t*)malloc(8);
-	fseek(binary, checkpointOffset*8, SEEK_SET);
+    binarySeedPtr = (int64_t*)malloc(8);
+    fseek(binary, checkpointOffset*8, SEEK_SET);
     for(int i = 0+checkpointOffset; i < total; i++){
         time_t elapsed = time(NULL) - start;
-		int result = 0;
+        int result = 0;
         result = fread(binarySeedPtr, 8, 1, binary);
         binaryX = (uint8_t)(((*binarySeedPtr) >> 8) & 0x0FF) - 127;
         binaryZ = (uint8_t)(((*binarySeedPtr)) & 0x0FF) - 127; 
@@ -341,7 +341,7 @@ int main(int argc, char **argv) {
     fflush(stderr);
     fflush(fp);
     fclose(fp);
-	fclose(binary);
+    fclose(binary);
     boinc_delete_file("filter9000-checkpoint.txt");
     #ifdef BOINC
         boinc_end_critical_section();
